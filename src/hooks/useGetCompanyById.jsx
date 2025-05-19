@@ -1,26 +1,49 @@
 import { setSingleCompany } from '@/redux/companySlice'
-import { setAllJobs } from '@/redux/jobSlice'
-import { COMPANY_API_END_POINT, JOB_API_END_POINT } from '@/utils/constant'
-import axios from 'axios'
-import { useEffect } from 'react'
+import { COMPANY_API_END_POINT } from '@/utils/constant'
+import api from '@/utils/axios'
+import { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
+import { toast } from 'sonner'
 
 const useGetCompanyById = (companyId) => {
     const dispatch = useDispatch();
-    useEffect(()=>{
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
+    
+    useEffect(() => {
         const fetchSingleCompany = async () => {
+            if (!companyId) return;
+            
+            setIsLoading(true);
+            setError(null);
+            
             try {
-                const res = await axios.get(`${COMPANY_API_END_POINT}/get/${companyId}`,{withCredentials:true});
-                console.log(res.data.company);
-                if(res.data.success){
+                // Use the configured API instance
+                const res = await api.get(`${COMPANY_API_END_POINT}/get/${companyId}`);
+                
+                if (res.data.success) {
                     dispatch(setSingleCompany(res.data.company));
                 }
             } catch (error) {
-                console.log(error);
+                console.error("Error fetching company:", error);
+                setError(error);
+                
+                if (error.response?.status === 401) {
+                    toast.error("Authentication required. Please log in again.");
+                } else if (error.response) {
+                    toast.error(error.response.data?.message || "Failed to load company data");
+                } else {
+                    toast.error("Network error. Please check your connection.");
+                }
+            } finally {
+                setIsLoading(false);
             }
         }
+        
         fetchSingleCompany();
-    },[companyId, dispatch])
+    }, [companyId, dispatch]);
+    
+    return { isLoading, error };
 }
 
 export default useGetCompanyById

@@ -208,21 +208,36 @@ const CompanySetup = () => {
         if (input.file) {
             formData.append("file", input.file)
         }
+        
         try {
             setLoading(true)
+            
+            // Get the auth token from localStorage
+            const token = localStorage.getItem('authToken');
+            console.log('Using token from localStorage for update:', token ? 'Found' : 'Not found');
+            
             const res = await axios.put(`${COMPANY_API_END_POINT}/update/${params.id}`, formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data'
+                    'Content-Type': 'multipart/form-data',
+                    ...(token && { 'Authorization': `Bearer ${token}` })
                 },
                 withCredentials: true
             })
+            
             if (res.data.success) {
                 toast.success(res.data.message)
                 navigate("/admin/companies")
             }
         } catch (error) {
-            console.log(error)
-            toast.error(error.response.data.message)
+            console.error("Company update error:", error);
+            if (error.response) {
+                toast.error(error.response.data?.message || "Failed to update company");
+                console.error("Response data:", error.response.data);
+            } else if (error.request) {
+                toast.error("Server did not respond. Please try again later.");
+            } else {
+                toast.error("Error updating company. Please try again.");
+            }
         } finally {
             setLoading(false)
         }

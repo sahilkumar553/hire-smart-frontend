@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import MainLayout from './components/layouts/MainLayout';
 import Login from './components/auth/Login';
@@ -22,6 +22,21 @@ import AboutUs from './pages/AboutUs';
 import Contact from './components/Contact';
 import BlogSection from './components/BlogSection';
 import HelpCenter from './pages/HelpCenter';
+import axios from 'axios';
+
+// Configure global axios defaults to include auth token
+axios.interceptors.request.use(
+  config => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  error => {
+    return Promise.reject(error);
+  }
+);
 
 const appRouter = createBrowserRouter([
   {
