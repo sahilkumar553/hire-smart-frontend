@@ -107,6 +107,10 @@ const Navbar = () => {
         try {
             const res = await axios.get(`${USER_API_END_POINT}/logout`, { withCredentials: true });
             if (res.data.success) {
+                // Clear the token from localStorage
+                localStorage.removeItem('authToken');
+                console.log('Token removed from localStorage');
+                
                 dispatch(setUser(null));
                 navigate('/');
                 toast.success(res.data.message);

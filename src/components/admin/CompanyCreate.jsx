@@ -109,36 +109,36 @@ const CompanyCreate = () => {
         try {
             setLoading(true);
             
-            // Get the token from localStorage or your auth state
-            const token = localStorage.getItem('token'); // Adjust based on how you store the token
+            // Get the token from localStorage with the correct key
+            const token = localStorage.getItem('authToken');
+            console.log('Using token from localStorage:', token ? 'Found' : 'Not found');
             
             const res = await axios.post(
                 `${COMPANY_API_END_POINT}/register`, 
                 { companyName }, 
                 {
                     withCredentials: true,
-                    headers: token ? {
-                        'Authorization': `Bearer ${token}`
-                    } : {}
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(token && { 'Authorization': `Bearer ${token}` })
+                    }
                 }
             );
             
             if (res.data.success) {
+                dispatch(setSingleCompany(res.data.company));
                 toast.success(res.data.message);
-                navigate('/dashboard/company/' + res.data.company._id);
+                const companyId = res.data.company._id;
+                navigate(`/admin/companies/${companyId}`);
             }
         } catch (error) {
             console.error("Company registration error:", error);
             if (error.response) {
-                // The request was made and the server responded with a status code
-                // that falls out of the range of 2xx
                 toast.error(error.response.data?.message || "Failed to register company");
                 console.error("Response data:", error.response.data);
             } else if (error.request) {
-                // The request was made but no response was received
                 toast.error("Server did not respond. Please try again later.");
             } else {
-                // Something happened in setting up the request
                 toast.error("Error creating company. Please try again.");
             }
         } finally {

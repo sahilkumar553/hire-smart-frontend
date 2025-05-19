@@ -38,13 +38,19 @@ const Login = () => {
         withCredentials: true,
       });
       if (res.data.success) {
+        // Store the token in localStorage for cross-domain requests
+        if (res.data.token) {
+          localStorage.setItem('authToken', res.data.token);
+          console.log('Token stored in localStorage');
+        }
+        
         dispatch(setUser(res.data.user));
         navigate('/');
         toast.success(res.data.message);
       }
     } catch (error) {
       console.log(error);
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || 'Login failed');
     } finally {
       dispatch(setLoading(false));
     }
