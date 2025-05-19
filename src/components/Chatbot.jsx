@@ -1,11 +1,13 @@
 import { FaCommentDots, FaTimes, FaUser, FaRobot } from "react-icons/fa";
 import { useState, useRef, useEffect } from "react";
+import { BASE_URL } from "@/utils/constant";
 
 function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [userInput, setUserInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const messagesEndRef = useRef(null);
 
   const toggleChatbot = () => {
@@ -27,9 +29,10 @@ function Chatbot() {
     setMessages(newMessages);
     setUserInput("");
     setLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch("http://localhost:3000/chat", {
+      const response = await fetch(`${BASE_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userInput }),
@@ -43,7 +46,8 @@ function Chatbot() {
       setMessages([...newMessages, { role: "bot", text: data.response }]);
     } catch (error) {
       console.error("Error fetching response:", error);
-      setMessages([...newMessages, { role: "bot", text: "Error fetching response. Please try again." }]);
+      setError("Unable to connect to the chatbot service. Please try again later.");
+      setMessages([...newMessages, { role: "bot", text: "Sorry, I'm having trouble connecting to our services right now. Please try again later." }]);
     }
 
     setLoading(false);
