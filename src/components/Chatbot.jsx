@@ -1,6 +1,59 @@
 import { FaCommentDots, FaTimes, FaUser, FaRobot } from "react-icons/fa";
 import { useState, useRef, useEffect } from "react";
 import { BASE_URL } from "@/utils/constant";
+import { toast } from "sonner";
+
+// Fallback responses when backend is unavailable
+const fallbackResponses = {
+  greeting: [
+    "Hello! I'm currently in offline mode, but I can still answer basic questions.",
+    "Hi there! I'm operating with limited capabilities right now.",
+    "Welcome! I'm currently working in offline mode."
+  ],
+  default: [
+    "I'm sorry, I can't provide a detailed answer right now as I'm in offline mode.",
+    "I'd love to help with that, but I'm currently operating with limited capabilities.",
+    "That's a good question, but I need to be online to answer it properly.",
+    "I'm in offline mode right now. Please try again later when the service is back online."
+  ],
+  project: [
+    "This is the Smart Labour Hiring platform that connects workers with employers efficiently.",
+    "The Smart Labour Hiring system helps match skilled laborers with relevant job opportunities."
+  ],
+  about: [
+    "The Smart Labour Hiring System bridges the gap between employers and workers by providing an easy-to-use platform."
+  ],
+  features: [
+    "Some key features include job posting, skill-based matching, secure payments, and ratings for both employers and workers."
+  ]
+};
+
+function getRandomFallbackResponse(type) {
+  const responses = fallbackResponses[type] || fallbackResponses.default;
+  return responses[Math.floor(Math.random() * responses.length)];
+}
+
+function matchFallbackIntent(input) {
+  const lowerInput = input.toLowerCase();
+  
+  if (lowerInput.includes('hello') || lowerInput.includes('hi') || lowerInput.includes('hey')) {
+    return 'greeting';
+  }
+  
+  if (lowerInput.includes('what is') && (lowerInput.includes('project') || lowerInput.includes('platform'))) {
+    return 'project';
+  }
+  
+  if (lowerInput.includes('about')) {
+    return 'about';
+  }
+  
+  if (lowerInput.includes('feature')) {
+    return 'features';
+  }
+  
+  return 'default';
+}
 
 function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -8,6 +61,7 @@ function Chatbot() {
   const [userInput, setUserInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [chatAvailable, setChatAvailable] = useState(true);
   const messagesEndRef = useRef(null);
 
   const toggleChatbot = () => {
@@ -22,21 +76,71 @@ function Chatbot() {
     scrollToBottom();
   }, [messages]);
 
+  // Check if chat endpoint is available when component mounts
+  useEffect(() => {
+    checkChatAvailability();
+  }, []);
+
+  const checkChatAvailability = async () => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      const response = await fetch(`${BASE_URL}/health`, {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        setChatAvailable(true);
+      } else {
+        setChatAvailable(false);
+      }
+    } catch (error) {
+      console.error("Chat service availability check failed:", error);
+      setChatAvailable(false);
+    }
+  };
+
   const sendMessage = async () => {
     if (!userInput.trim()) return;
 
     const newMessages = [...messages, { role: "user", text: userInput }];
     setMessages(newMessages);
+    const inputText = userInput;
     setUserInput("");
     setLoading(true);
     setError(null);
 
+    if (!chatAvailable) {
+      // Use fallback responses when chat is unavailable
+      const intent = matchFallbackIntent(inputText);
+      const fallbackResponse = getRandomFallbackResponse(intent);
+      
+      setTimeout(() => {
+        setMessages([...newMessages, { 
+          role: "bot", 
+          text: fallbackResponse 
+        }]);
+        setLoading(false);
+      }, 1000); // Slight delay to make it feel more natural
+      return;
+    }
+
     try {
+      // Create an AbortController to implement timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 seconds timeout
+      
       const response = await fetch(`${BASE_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userInput }),
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -46,8 +150,24 @@ function Chatbot() {
       setMessages([...newMessages, { role: "bot", text: data.response }]);
     } catch (error) {
       console.error("Error fetching response:", error);
-      setError("Unable to connect to the chatbot service. Please try again later.");
-      setMessages([...newMessages, { role: "bot", text: "Sorry, I'm having trouble connecting to our services right now. Please try again later." }]);
+      
+      // Handle different types of errors differently
+      if (error.name === 'AbortError') {
+        setError("Request timed out. The chat service might be busy.");
+        setMessages([...newMessages, { 
+          role: "bot", 
+          text: "I'm sorry, but it's taking too long to get a response. The service might be busy right now. Please try again later." 
+        }]);
+      } else {
+        setError("Unable to connect to the chatbot service.");
+        setMessages([...newMessages, { 
+          role: "bot", 
+          text: "Sorry, I'm having trouble connecting to our services right now. Please try again later." 
+        }]);
+      }
+      
+      // Mark chat as unavailable after errors
+      setChatAvailable(false);
     }
 
     setLoading(false);
@@ -76,7 +196,16 @@ function Chatbot() {
             </div>
             <div>
               <h1 className="text-lg font-semibold text-white">AI Assistant</h1>
-              <p className="text-xs text-indigo-100">Always here to help</p>
+              <div className="flex items-center">
+                <p className="text-xs text-indigo-100">
+                  {chatAvailable ? "Always here to help" : "Offline mode"}
+                </p>
+                {!chatAvailable && (
+                  <span className="ml-2 inline-flex items-center">
+                    <span className="h-2 w-2 rounded-full bg-red-400 animate-pulse"></span>
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           <button 
@@ -87,6 +216,26 @@ function Chatbot() {
             <FaTimes size={18} />
           </button>
         </div>
+
+        {/* Offline notice with retry button */}
+        {!chatAvailable && (
+          <div className="px-4 py-2 bg-amber-50 border-t border-amber-200">
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-amber-800">
+                Chat service is currently offline. Using basic responses.
+              </p>
+              <button 
+                onClick={() => {
+                  checkChatAvailability();
+                  toast.info("Checking if chat service is available...");
+                }}
+                className="text-xs font-medium text-indigo-600 hover:text-indigo-800"
+              >
+                Retry connection
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Chat Messages */}
         <div className="p-4 space-y-4 overflow-y-auto h-80 bg-gray-50">
