@@ -29,7 +29,7 @@ const Home = () => {
       <div className='homeDiv'>
         <HeroSection />
         <Chatbot />
-        <div className="section-divider" id="categories"></div>
+        <div className="section-separator" id="categories"></div>
         <CategoryCarousel />
         <div className="section-divider"></div>
         <StudentsList />

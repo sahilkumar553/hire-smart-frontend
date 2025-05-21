@@ -65,6 +65,26 @@
   width: 100%;
 }
 
+/* More prominent separator between hero and categories */
+.section-separator {
+  height: 100px;
+  width: 100%;
+  position: relative;
+  margin: 20px 0;
+}
+
+.section-separator::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  max-width: 1200px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.3), transparent);
+}
+
 #categories {
   height: 80px;
 }
@@ -77,6 +97,10 @@
   
   .section-divider {
     height: 20px;
+  }
+  
+  .section-separator {
+    height: 60px;
   }
   
   #categories {
