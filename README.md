@@ -54,13 +54,30 @@ A modern web application for connecting skilled labor workers with potential emp
    npm run build
    ```
 
-## 🚦 CI/CD Pipeline
+## 🚦 CI/CD with GitHub Actions
 
-This project uses Jenkins for continuous integration and deployment:
+This project uses GitHub Actions for continuous integration and deployment to Vercel:
 
-- **Repository**: Changes pushed to GitHub trigger the pipeline
-- **Build**: Jenkins builds the application
-- **Deployment**: Automatic deployment to Vercel
+1. **Set up secrets in GitHub repository**:
+   - Go to your repository on GitHub
+   - Navigate to Settings → Secrets and variables → Actions
+   - Add the following secrets:
+     - `VERCEL_TOKEN`: Your Vercel API token
+     - `VERCEL_ORG_ID`: Your Vercel organization ID
+     - `VERCEL_PROJECT_ID`: Your Vercel project ID
+
+2. **How it works**:
+   - Every push to `main` branch triggers a production deployment
+   - Pull requests and pushes to other branches create preview deployments
+   - Build checks ensure code quality before deployment
+
+3. **Find your Vercel IDs**:
+   ```bash
+   npx vercel login
+   npx vercel link  # Note the projectId and orgId values
+   ```
+
+The workflow configuration is located in `.github/workflows/vercel-deploy.yml`.
 
 ## 📁 Project Structure
 
@@ -82,6 +99,8 @@ frontend/
 │   ├── utils/       # Utility functions
 │   ├── App.jsx      # Main App component
 │   └── main.jsx     # Entry point
+├── .github/         # GitHub configuration files
+│   └── workflows/   # GitHub Actions workflows
 ├── .eslintrc.cjs    # ESLint configuration
 ├── index.html       # HTML template
 ├── package.json     # Dependencies and scripts
@@ -98,7 +117,7 @@ npm test
 
 ## 🌐 Deployment
 
-The application is deployed to Vercel. Each push to the main branch triggers a deployment through our Jenkins CI/CD pipeline.
+The application is deployed to Vercel. Each push to the main branch triggers an automatic deployment through GitHub Actions.
 
 ## 👥 Contributing
 
@@ -114,4 +133,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 📞 Contact
 
-Project Maintainer - Sahil Kumar Gupta
+Project Maintainer - Sahil Kumar Gupta 
