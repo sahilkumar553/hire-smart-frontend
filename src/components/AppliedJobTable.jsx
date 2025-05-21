@@ -28,11 +28,11 @@ const AppliedJobTable = () => {
 
             const token = localStorage.getItem("token")
 
-            await axios.post(
-                `http://localhost:3000/api/v1/application/feedback-to-applicant/${appliedJobId}`,
-                { feedback: feedbackText },
-                { withCredentials: true }
-            )
+          await axios.post(
+              `${FEEDBACK_API_END_POINT}/${appliedJobId}`,
+              { feedback: feedbackText },
+              { withCredentials: true }
+          );
 
             toast.success("Feedback submitted!")
         } catch (err) {
