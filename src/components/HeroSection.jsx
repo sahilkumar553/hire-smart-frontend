@@ -206,14 +206,20 @@ const HeroSection = () => {
                             transition={{ delay: 0.8, duration: 0.5 }}
                             className="flex flex-wrap items-center justify-center gap-4 mt-4"
                         >
-                            <div className="flex items-center gap-2 px-4 py-2 text-sm text-white bg-white/10 backdrop-blur-md rounded-full border border-white/20">
+                            <a 
+                                href="#categories"
+                                className="flex items-center gap-2 px-4 py-2 text-sm text-white bg-white/10 backdrop-blur-md rounded-full border border-white/20 hover:bg-white/20 transition-colors duration-300"
+                            >
                                 <MapPin size={16} className="text-pink-400" />
                                 <span>Local Jobs</span>
-                            </div>
-                            <div className="flex items-center gap-2 px-4 py-2 text-sm text-white bg-white/10 backdrop-blur-md rounded-full border border-white/20">
+                            </a>
+                            <a 
+                                href="#categories"
+                                className="flex items-center gap-2 px-4 py-2 text-sm text-white bg-white/10 backdrop-blur-md rounded-full border border-white/20 hover:bg-white/20 transition-colors duration-300"
+                            >
                                 <Briefcase size={16} className="text-purple-400" />
                                 <span>Popular Categories</span>
-                            </div>
+                            </a>
                         </motion.div>
                     </div>
                 </div>

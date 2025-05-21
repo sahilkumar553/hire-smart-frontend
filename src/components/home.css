@@ -4,6 +4,7 @@
 {
     margin-top: -39px;  
     padding-bottom: 5px;
+    overflow-x: hidden;
 }
 .typewriter-heading {
     color: #ffffff;
@@ -57,4 +58,35 @@
 {
   margin-top: -50px;
 } 
+
+/* Section dividers for spacing */
+.section-divider {
+  height: 40px;
+  width: 100%;
+}
+
+#categories {
+  height: 80px;
+}
+
+/* Responsive spacing for components */
+@media (max-width: 768px) {
+  .homeDiv > *:not(:first-child) {
+    margin-top: 2rem;
+  }
+  
+  .section-divider {
+    height: 20px;
+  }
+  
+  #categories {
+    height: 40px;
+  }
+}
+
+@media (min-width: 769px) {
+  .homeDiv > * {
+    margin-top: 0;
+  }
+}
 

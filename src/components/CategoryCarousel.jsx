@@ -144,7 +144,7 @@ const CategorySection = () => {
   };
 
   return (
-    <div className="relative w-full min-h-screen px-6 py-20 overflow-hidden bg-gradient-to-b from-gray-50 to-white">
+    <div className="relative w-full min-h-screen px-6 py-20 overflow-hidden bg-gradient-to-b from-gray-50 to-white mt-[100vh] sm:mt-[80vh] md:mt-0">
       {/* Decorative Elements */}
       <div className="absolute top-0 left-0 w-full h-[300px] overflow-hidden z-0">
         <motion.div 
@@ -204,7 +204,7 @@ const CategorySection = () => {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10">
+      <div className="relative z-10 pt-16 md:pt-0">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}

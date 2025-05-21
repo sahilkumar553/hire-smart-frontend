@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import MainLayout from './components/layouts/MainLayout';
 import Login from './components/auth/Login';
@@ -42,6 +42,155 @@ axios.interceptors.request.use(
   }
 );
 
+// Authentication debugging component
+function AuthDebug() {
+  const [authState, setAuthState] = useState({
+    token: null,
+    tokenStatus: 'checking',
+    user: null,
+    apiTest: { status: 'not-run', result: null }
+  });
+  
+  useEffect(() => {
+    // Check token
+    const token = localStorage.getItem('authToken');
+    setAuthState(prev => ({ ...prev, token: token ? `${token.substring(0, 15)}...` : 'No token' }));
+    
+    // Check token validity
+    if (token) {
+      try {
+        const parts = token.split('.');
+        if (parts.length === 3) {
+          const payload = JSON.parse(atob(parts[1]));
+          const expiry = new Date(payload.exp * 1000);
+          const now = new Date();
+          setAuthState(prev => ({ 
+            ...prev, 
+            tokenStatus: expiry > now ? 'valid' : 'expired',
+            tokenData: payload
+          }));
+        } else {
+          setAuthState(prev => ({ ...prev, tokenStatus: 'invalid-format' }));
+        }
+      } catch (err) {
+        setAuthState(prev => ({ ...prev, tokenStatus: 'invalid', error: err.message }));
+      }
+    } else {
+      setAuthState(prev => ({ ...prev, tokenStatus: 'missing' }));
+    }
+  }, []);
+  
+  const testApi = async (endpoint) => {
+    setAuthState(prev => ({ ...prev, apiTest: { status: 'loading', endpoint } }));
+    try {
+      const response = await api.get(endpoint);
+      setAuthState(prev => ({ 
+        ...prev, 
+        apiTest: { 
+          status: 'success', 
+          endpoint,
+          result: response.data,
+          statusCode: response.status
+        } 
+      }));
+    } catch (error) {
+      setAuthState(prev => ({ 
+        ...prev, 
+        apiTest: { 
+          status: 'error', 
+          endpoint,
+          error: error.response?.data || error.message,
+          statusCode: error.response?.status
+        } 
+      }));
+    }
+  };
+  
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-6">Authentication Debugger</h1>
+      
+      <div className="bg-white shadow rounded-lg p-4 mb-6">
+        <h2 className="text-lg font-semibold mb-2">Token Status</h2>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm font-medium">Token:</p>
+            <div className="text-xs mt-1 p-2 bg-gray-100 rounded">{authState.token}</div>
+          </div>
+          <div>
+            <p className="text-sm font-medium">Status:</p>
+            <div className={`text-sm mt-1 p-1 rounded inline-block ${
+              authState.tokenStatus === 'valid' ? 'bg-green-100 text-green-800' :
+              authState.tokenStatus === 'expired' ? 'bg-yellow-100 text-yellow-800' :
+              'bg-red-100 text-red-800'
+            }`}>
+              {authState.tokenStatus}
+            </div>
+          </div>
+        </div>
+        
+        {authState.tokenData && (
+          <div className="mt-4">
+            <p className="text-sm font-medium">Token Data:</p>
+            <pre className="text-xs mt-1 p-2 bg-gray-100 rounded overflow-auto">
+              {JSON.stringify(authState.tokenData, null, 2)}
+            </pre>
+          </div>
+        )}
+      </div>
+      
+      <div className="bg-white shadow rounded-lg p-4 mb-6">
+        <h2 className="text-lg font-semibold mb-4">API Test</h2>
+        <div className="flex space-x-2 mb-4">
+          <button 
+            className="px-3 py-1 bg-blue-600 text-white rounded text-sm" 
+            onClick={() => testApi(`${USER_API_END_POINT}/me`)}
+          >
+            Test /me
+          </button>
+          <button 
+            className="px-3 py-1 bg-green-600 text-white rounded text-sm" 
+            onClick={() => testApi('/api/v1/company/get')}
+          >
+            Test company
+          </button>
+        </div>
+        
+        {authState.apiTest.status !== 'not-run' && (
+          <div className="mt-2">
+            <p className="text-sm font-medium">
+              {authState.apiTest.endpoint} - 
+              Status: {authState.apiTest.statusCode || 'N/A'} 
+              ({authState.apiTest.status})
+            </p>
+            <pre className="text-xs mt-1 p-2 bg-gray-100 rounded overflow-auto h-40">
+              {JSON.stringify(authState.apiTest.result || authState.apiTest.error, null, 2)}
+            </pre>
+          </div>
+        )}
+      </div>
+      
+      <div className="flex space-x-4">
+        <button 
+          className="px-4 py-2 bg-red-600 text-white rounded" 
+          onClick={() => {
+            localStorage.removeItem('authToken');
+            window.location.reload();
+          }}
+        >
+          Clear Token & Reload
+        </button>
+        <button 
+          className="px-4 py-2 bg-gray-600 text-white rounded" 
+          onClick={() => window.location.reload()}
+        >
+          Refresh Page
+        </button>
+      </div>
+    </div>
+  );
+}
+
 const appRouter = createBrowserRouter([
   {
     path: '/',
@@ -50,6 +199,10 @@ const appRouter = createBrowserRouter([
         <Home />
       </MainLayout>
     )
+  },
+  {
+    path: '/auth-debug',
+    element: <AuthDebug />
   },
   {
     path: '/login',

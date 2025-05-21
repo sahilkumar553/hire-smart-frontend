@@ -29,11 +29,17 @@ const Home = () => {
       <div className='homeDiv'>
         <HeroSection />
         <Chatbot />
+        <div className="section-divider" id="categories"></div>
         <CategoryCarousel />
+        <div className="section-divider"></div>
         <StudentsList />
+        <div className="section-divider"></div>
         <SuccessStories />
+        <div className="section-divider"></div>
         <BlogSection />
+        <div className="section-divider"></div>
         <LatestJobs />
+        <div className="section-divider"></div>
         <Contact />
       </div>
       <Footer />

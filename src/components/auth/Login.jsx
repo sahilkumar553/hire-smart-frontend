@@ -41,7 +41,19 @@ const Login = () => {
         // Store the token in localStorage for cross-domain requests
         if (res.data.token) {
           localStorage.setItem('authToken', res.data.token);
-          console.log('Token stored in localStorage');
+          console.log('Token stored in localStorage:', res.data.token.substring(0, 15) + '...');
+          
+          // Verify token is properly stored
+          const storedToken = localStorage.getItem('authToken');
+          if (!storedToken || storedToken !== res.data.token) {
+            console.error('Token storage verification failed');
+            toast.error('Error storing authentication data. Please try again.');
+            return;
+          }
+        } else {
+          console.error('No token received from server');
+          toast.error('Authentication error: No token received');
+          return;
         }
         
         dispatch(setUser(res.data.user));
@@ -49,7 +61,7 @@ const Login = () => {
         toast.success(res.data.message);
       }
     } catch (error) {
-      console.log(error);
+      console.error('Login error:', error);
       toast.error(error.response?.data?.message || 'Login failed');
     } finally {
       dispatch(setLoading(false));
