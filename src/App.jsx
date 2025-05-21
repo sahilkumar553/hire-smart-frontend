@@ -21,6 +21,7 @@ import StudentsList from './components/StudentsList';
 import AboutUs from './pages/AboutUs';
 import Contact from './components/Contact';
 import BlogSection from './components/BlogSection';
+import BlogPost from './components/BlogPost';
 import HelpCenter from './pages/HelpCenter';
 import axios from 'axios';
 import { USER_API_END_POINT } from './utils/constant';
@@ -271,6 +272,18 @@ const appRouter = createBrowserRouter([
   {
     path: "/blog",
     element: <BlogSection />
+  },
+  {
+    path: "/blog/career-tips",
+    element: <BlogPost />
+  },
+  {
+    path: "/blog/market-trends",
+    element: <BlogPost />
+  },
+  {
+    path: "/blog/digital-skills",
+    element: <BlogPost />
   },
   {
     path: "/help",
