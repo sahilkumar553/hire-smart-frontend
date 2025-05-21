@@ -1,4 +1,4 @@
-name: Deploy to Vercel
+name: CI/CD Pipeline
 
 on:
   push:
@@ -10,14 +10,14 @@ on:
       - main
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.2.2
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v3.9.1
         with:
           node-version: 18
           cache: 'npm'
@@ -29,6 +29,44 @@ jobs:
         run: npm run build
         env:
           CI: false
+          
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: build-output
+          path: dist/
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3.9.1
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Run Tests
+        run: npm test
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4.3.0
+        with:
+          name: build-output
+          path: dist/
 
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
@@ -36,4 +74,4 @@ jobs:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && '--prod' || '' }} 
+          vercel-args: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && '--prod' || '' }}
