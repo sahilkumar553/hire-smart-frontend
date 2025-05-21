@@ -23,6 +23,10 @@ import Contact from './components/Contact';
 import BlogSection from './components/BlogSection';
 import HelpCenter from './pages/HelpCenter';
 import axios from 'axios';
+import { USER_API_END_POINT } from './utils/constant';
+import { useDispatch } from 'react-redux';
+import { setUser } from './redux/authSlice';
+import api from './utils/axios';
 
 // Configure global axios defaults to include auth token
 axios.interceptors.request.use(
@@ -213,6 +217,30 @@ const appRouter = createBrowserRouter([
 ]);
 
 function App() {
+  const dispatch = useDispatch();
+
+  // Check authentication status on app start
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        try {
+          // Verify token and get current user data
+          const response = await api.get(`${USER_API_END_POINT}/me`);
+          if (response.data.success) {
+            dispatch(setUser(response.data.user));
+          }
+        } catch (error) {
+          console.error('Auth verification failed:', error);
+          // Clear invalid token
+          localStorage.removeItem('authToken');
+        }
+      }
+    };
+
+    checkAuthStatus();
+  }, [dispatch]);
+
   return <RouterProvider router={appRouter} />;
 }
 
