@@ -28,11 +28,11 @@ const AppliedJobTable = () => {
 
             const token = localStorage.getItem("token")
 
-          await axios.post(
-              `${FEEDBACK_API_END_POINT}/${appliedJobId}`,
-              { feedback: feedbackText },
-              { withCredentials: true }
-          );
+            await axios.post(
+                `https://hire-smart-backend-production.up.railway.app/api/v1/application/feedback-to-applicant/${appliedJobId}`,
+                { feedback: feedbackText },
+                { withCredentials: true }
+            )
 
             toast.success("Feedback submitted!")
         } catch (err) {
